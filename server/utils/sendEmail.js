@@ -1,24 +1,51 @@
-import nodemailer from 'nodemailer'
+// Transactional email via Brevo's HTTP API (https://api.brevo.com).
+//
+// WHY NOT SMTP/GMAIL: Render's free/starter tier blocks outbound SMTP ports
+// (25/465/587), so nodemailer + Gmail times out with ETIMEDOUT on CONN. Brevo
+// sends over HTTPS (port 443), which Render allows, so OTP and order emails work
+// reliably in production.
+//
+// Required env vars:
+//   BREVO_API_KEY - your Brevo API key (Brevo dashboard > SMTP & API > API Keys)
+//   EMAIL_USER    - the verified sender email (verify it in Brevo > Senders)
+//   ADMIN_EMAIL   - where new-order notifications are sent (optional)
 
-const transporter = nodemailer.createTransport({
-  service: 'gmail',
-  auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASS,
-  },
-  // Fail fast if the SMTP connection can't be established, so the API returns
-  // an error instead of hanging the request (which freezes the UI spinner).
-  connectionTimeout: 10000, // 10s to open the TCP/SMTP connection
-  greetingTimeout: 10000,   // 10s to receive the server greeting
-  socketTimeout: 20000,     // 20s of socket inactivity before aborting
-})
+const BREVO_API_URL = 'https://api.brevo.com/v3/smtp/email'
+const FROM_NAME = 'Khadija Garments'
 
-// Log the exact transporter verification result on boot so email problems are
-// visible in the server logs instead of failing silently at send time.
-transporter.verify((err) => {
-  if (err) console.error('Email transporter verify FAILED:', err.message)
-  else console.log('Email transporter ready')
-})
+if (!process.env.BREVO_API_KEY) {
+  console.error('BREVO_API_KEY is not set - emails will fail until it is configured')
+} else {
+  console.log('Email (Brevo HTTP API) ready')
+}
+
+// Core sender: POSTs a single transactional email to Brevo over HTTPS.
+const sendEmail = async ({ to, subject, html }) => {
+  const apiKey = process.env.BREVO_API_KEY
+  const fromEmail = process.env.EMAIL_USER
+  if (!apiKey) throw new Error('BREVO_API_KEY is not set')
+  if (!fromEmail) throw new Error('EMAIL_USER (sender email) is not set')
+
+  const res = await fetch(BREVO_API_URL, {
+    method: 'POST',
+    headers: {
+      'api-key': apiKey,
+      'Content-Type': 'application/json',
+      accept: 'application/json',
+    },
+    body: JSON.stringify({
+      sender: { email: fromEmail, name: FROM_NAME },
+      to: [{ email: to }],
+      subject,
+      htmlContent: html,
+    }),
+  })
+
+  if (!res.ok) {
+    const detail = await res.text().catch(() => '')
+    throw new Error(`Brevo email failed (${res.status}): ${detail}`)
+  }
+}
 
 export const sendOtpEmail = async (toEmail, otp, type) => {
   const subject =
@@ -36,15 +63,10 @@ export const sendOtpEmail = async (toEmail, otp, type) => {
       <p style="color:#999;font-size:13px;">If you didn't request this, you can safely ignore this email.</p>
     </div>
   `
-  await transporter.sendMail({
-    from: `"Khadija Garments" <${process.env.EMAIL_USER}>`,
-    to: toEmail,
-    subject,
-    html,
-  })
+  await sendEmail({ to: toEmail, subject, html })
 }
 
-// ── Order placed: notify admin ──────────────────────────────────────────────
+// ── Order placed: notify admin ───────────────────────────────────
 export const sendOrderPlacedAdminEmail = async (order) => {
   const itemRows = order.items
     .map(
@@ -92,15 +114,14 @@ export const sendOrderPlacedAdminEmail = async (order) => {
     </div>
   `
 
-  await transporter.sendMail({
-    from: `"Khadija Garments" <${process.env.EMAIL_USER}>`,
+  await sendEmail({
     to: process.env.ADMIN_EMAIL || process.env.EMAIL_USER,
     subject: `New Order #${order._id.toString().slice(-8).toUpperCase()} from ${order.customer.name}`,
     html,
   })
 }
 
-// ── Order placed: notify customer ───────────────────────────────────────────
+// ── Order placed: notify customer ──────────────────────────────
 export const sendOrderPlacedCustomerEmail = async (order) => {
   const trackCode = order._id.toString().slice(-8).toUpperCase()
   const itemRows = order.items
@@ -149,15 +170,14 @@ export const sendOrderPlacedCustomerEmail = async (order) => {
     </div>
   `
 
-  await transporter.sendMail({
-    from: `"Khadija Garments" <${process.env.EMAIL_USER}>`,
+  await sendEmail({
     to: order.customer.email,
     subject: `Order Confirmed #${trackCode} — Khadija Garments`,
     html,
   })
 }
 
-// ── Status updated: notify customer ─────────────────────────────────────────
+// ── Status updated: notify customer ─────────────────────────────
 const STATUS_MESSAGES = {
   Placed:     { emoji: '>o<', line: 'Your order has been received and is being processed.' },
   Packed:     { emoji: '^_^', line: 'Great news! Your order has been packed and is ready to ship.' },
@@ -193,8 +213,7 @@ export const sendOrderStatusEmail = async (order) => {
     </div>
   `
 
-  await transporter.sendMail({
-    from: `"Khadija Garments" <${process.env.EMAIL_USER}>`,
+  await sendEmail({
     to: order.customer.email,
     subject: `Order #${trackCode} is now ${order.status} — Khadija Garments`,
     html,
