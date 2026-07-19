@@ -6,6 +6,18 @@ const transporter = nodemailer.createTransport({
     user: process.env.EMAIL_USER,
     pass: process.env.EMAIL_PASS,
   },
+  // Fail fast if the SMTP connection can't be established, so the API returns
+  // an error instead of hanging the request (which freezes the UI spinner).
+  connectionTimeout: 10000, // 10s to open the TCP/SMTP connection
+  greetingTimeout: 10000,   // 10s to receive the server greeting
+  socketTimeout: 20000,     // 20s of socket inactivity before aborting
+})
+
+// Log the exact transporter verification result on boot so email problems are
+// visible in the server logs instead of failing silently at send time.
+transporter.verify((err) => {
+  if (err) console.error('Email transporter verify FAILED:', err.message)
+  else console.log('Email transporter ready')
 })
 
 export const sendOtpEmail = async (toEmail, otp, type) => {
