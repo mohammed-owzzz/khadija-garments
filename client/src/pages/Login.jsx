@@ -191,6 +191,16 @@ function Login() {
               <p className="h-4 text-red-500 text-xs font-body leading-4">{errors.password}</p>
             </div>
 
+            <div className="flex justify-end -mt-1 mb-2">
+              <button
+                type="button"
+                onClick={() => softNavigate('/forgot-password')}
+                className="font-body text-sm text-brand-gold hover:underline transition-all duration-300 active:scale-95"
+              >
+                Forgot password?
+              </button>
+            </div>
+
             <p className="h-4 text-red-500 text-xs font-body leading-4 mb-2">{serverError}</p>
 
             <HoverButton
