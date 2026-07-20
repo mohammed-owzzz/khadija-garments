@@ -392,13 +392,17 @@ function Signup() {
                   <button
                     onClick={handleResend}
                     disabled={resendCooldown > 0}
-                    className={`font-body text-sm text-right tabular-nums min-w-[7.5rem] transition-all duration-300 active:scale-95 ${
+                    className={`font-body text-sm text-right w-[7.5rem] shrink-0 transition-all duration-300 active:scale-95 ${
                       resendCooldown > 0
                         ? `${textColor} opacity-40 cursor-not-allowed`
                         : 'text-brand-gold hover:underline'
                     }`}
                   >
-                    {resendCooldown > 0 ? `Resend in ${String(resendCooldown).padStart(2, '0')}s` : 'Resend OTP'}
+                    {resendCooldown > 0 ? (
+                      <>Resend in <span className="inline-block w-[2ch] text-right tabular-nums">{resendCooldown}</span>s</>
+                    ) : (
+                      'Resend OTP'
+                    )}
                   </button>
                 </div>
               </div>
