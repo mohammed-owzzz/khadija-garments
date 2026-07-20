@@ -15,6 +15,7 @@ import About from './pages/About'
 import Contact from './pages/Contact'
 import Login from './pages/Login'
 import Signup from './pages/Signup'
+import ForgotPassword from './pages/ForgotPassword'
 import NotFound from './pages/NotFound'
 import AdminLogin from './pages/admin/AdminLogin'
 import Dashboard from './pages/admin/Dashboard'
@@ -31,6 +32,7 @@ function App() {
         {/* ── Standalone full-page routes (no navbar/footer) ── */}
         <Route path="/login"        element={<Login />} />
         <Route path="/signup"       element={<Signup />} />
+        <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/admin/login"  element={<AdminLogin />} />
 
         {/* ── Admin routes (guarded) ── */}
