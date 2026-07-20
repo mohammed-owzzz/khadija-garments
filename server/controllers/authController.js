@@ -181,3 +181,72 @@ export const resendOtp = async (req, res) => {
     res.status(500).json({ message: 'Failed to resend. Please try again.' })
   }
 }
+
+// ── FORGOT PASSWORD — Step 1: send reset OTP ──────────────────────────
+export const sendResetOtp = async (req, res) => {
+  try {
+    const { email } = req.body
+
+    if (!email?.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))
+      return res.status(400).json({ message: 'Please enter a valid email address' })
+
+    const user = await User.findOne({ email: email.toLowerCase() })
+    // Admins reset their password through a separate flow; treat as not found here.
+    if (!user || user.isAdmin)
+      return res.status(404).json({ message: 'No account found with this email address' })
+
+    const emailOtp = generateOtp()
+
+    await Otp.deleteMany({ email: email.toLowerCase(), type: 'reset' })
+    await Otp.create({
+      email: email.toLowerCase(),
+      emailOtp,
+      userId: user._id.toString(),
+      type: 'reset',
+      expiresAt: new Date(Date.now() + OTP_TTL_MS),
+    })
+
+    await sendOtpEmail(email, emailOtp, 'reset')
+
+    const maskedEmail = email.replace(/(.{2})[^@]+(@.+)/, '$1***$2')
+    res.status(200).json({ message: 'OTP sent', maskedEmail })
+  } catch (error) {
+    console.error('sendResetOtp error:', error)
+    res.status(500).json({ message: 'Failed to send OTP. Please try again.' })
+  }
+}
+
+// ── FORGOT PASSWORD — Step 2: verify OTP + set new password ──────────────
+export const resetPassword = async (req, res) => {
+  try {
+    const { email, emailOtp, password } = req.body
+
+    if (!email?.trim() || !emailOtp?.trim() || !password)
+      return res.status(400).json({ message: 'Email, OTP and new password are required' })
+
+    const record = await Otp.findOne({ email: email.toLowerCase(), type: 'reset' })
+    if (!record || record.expiresAt < new Date())
+      return res.status(400).json({ message: 'OTP expired. Please request a new one.' })
+
+    if (record.emailOtp !== emailOtp.trim())
+      return res.status(400).json({ message: 'Incorrect OTP. Please try again.' })
+
+    const passwordError = validatePasswordStrength(password)
+    if (passwordError)
+      return res.status(400).json({ message: passwordError })
+
+    const user = await User.findOne({ email: email.toLowerCase() })
+    if (!user || user.isAdmin)
+      return res.status(400).json({ message: 'Account not found.' })
+
+    const salt = await bcrypt.genSalt(10)
+    user.password = await bcrypt.hash(password, salt)
+    await user.save()
+    await Otp.deleteOne({ _id: record._id })
+
+    res.status(200).json({ message: 'Password reset successful. Please log in.' })
+  } catch (error) {
+    console.error('resetPassword error:', error)
+    res.status(500).json({ message: 'Reset failed. Please try again.' })
+  }
+}
