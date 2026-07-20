@@ -398,7 +398,7 @@ function Signup() {
                         : 'text-brand-gold hover:underline'
                     }`}
                   >
-                    {resendCooldown > 0 ? `Resend in ${resendCooldown}s` : 'Resend OTP'}
+                    {resendCooldown > 0 ? `Resend in ${String(resendCooldown).padStart(2, '0')}s` : 'Resend OTP'}
                   </button>
                 </div>
               </div>
