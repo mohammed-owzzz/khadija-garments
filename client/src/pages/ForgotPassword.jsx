@@ -163,7 +163,7 @@ function ForgotPassword() {
     setResetServerError('')
     try {
       await api.post('/auth/reset-password', { email, emailOtp, password })
-      setSuccessMsg('Password reset! Redirecting to login…')
+      setSuccessMsg('Password reset! Redirecting to login\u2026')
       setTimeout(() => softNavigate('/login'), 1400)
     } catch (err) {
       setResetServerError(err.response?.data?.message || 'Reset failed. Please try again.')
@@ -378,13 +378,17 @@ function ForgotPassword() {
                   <button
                     onClick={handleResend}
                     disabled={resendCooldown > 0}
-                    className={`font-body text-sm text-right tabular-nums min-w-[7.5rem] transition-all duration-300 active:scale-95 ${
+                    className={`font-body text-sm text-right w-[7.5rem] shrink-0 transition-all duration-300 active:scale-95 ${
                       resendCooldown > 0
                         ? `${textColor} opacity-40 cursor-not-allowed`
                         : 'text-brand-gold hover:underline'
                     }`}
                   >
-                    {resendCooldown > 0 ? `Resend in ${String(resendCooldown).padStart(2, '0')}s` : 'Resend code'}
+                    {resendCooldown > 0 ? (
+                      <>Resend in <span className="inline-block w-[2ch] text-right tabular-nums">{resendCooldown}</span>s</>
+                    ) : (
+                      'Resend code'
+                    )}
                   </button>
                 </div>
               </div>
