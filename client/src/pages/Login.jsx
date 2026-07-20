@@ -7,11 +7,11 @@ import { scrollToFirstError } from '../utils/formScroll'
 import api from '../api/axios'
 
 const BRAND_MESSAGES = [
-  'PREMIUM QUALITY, WHOLESALE PRICES.',
-  'TRUSTED BY RETAILERS ACROSS INDIA.',
-  'OVER 100 EXCLUSIVE DESIGNS.',
-  'FAST DISPATCH. REAL RELATIONSHIPS.',
-  'WHERE FABRIC MEETS FINESSE.',
+  'PREMIUM QUALITY.',
+  'TRUSTED PAN-INDIA.',
+  '100+ DESIGNS.',
+  'FAST DISPATCH.',
+  'FABRIC MEETS FINESSE.',
 ]
 const FACES = ['>O<', '^_^', '>W<', '^O^', '-_-']
 const LOGIN_HOVER   = ['LOGGING IN! ^_^', "LET'S GO! >O<", 'WELCOME BACK! >W<', 'ALMOST! ^O^']
