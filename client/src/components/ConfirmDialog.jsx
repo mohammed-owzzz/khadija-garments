@@ -6,7 +6,7 @@ const CANCEL_CLICK  = ['CANCELLING >O<', 'GOING BACK ^_^', 'OK OK >W<', 'NEVER M
 const DELETE_HOVER  = ['DELETE! ^_^', 'GONE! >O<', 'BYE BYE! >W<', 'REMOVE! ^O^']
 const DELETE_CLICK  = ['DELETING >O<', 'REMOVING ^_^', 'ALMOST >W<', 'GONE! ^O^']
 
-const BASE_BTN = 'flex-1 min-w-0 overflow-hidden flex items-center justify-center font-body font-semibold px-2 py-3 rounded-lg transition-all duration-300 ease-out'
+const BASE_BTN = 'flex-1 min-w-0 overflow-hidden flex items-center justify-center font-body font-semibold px-2 py-3 rounded-lg border-2 border-transparent transition-all duration-300 ease-out'
 
 function ConfirmDialog({
   isOpen,
