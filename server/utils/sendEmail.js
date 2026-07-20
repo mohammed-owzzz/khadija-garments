@@ -45,6 +45,9 @@ const sendEmail = async ({ to, subject, html }) => {
     const detail = await res.text().catch(() => '')
     throw new Error(`Brevo email failed (${res.status}): ${detail}`)
   }
+
+  const info = await res.json().catch(() => ({}))
+  console.log(`Brevo accepted email to ${to} (status ${res.status}, messageId: ${info.messageId || 'n/a'})`)
 }
 
 export const sendOtpEmail = async (toEmail, otp, type) => {
