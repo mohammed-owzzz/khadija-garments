@@ -1,4 +1,5 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
+import ScrollToTop from './components/ScrollToTop'
 import Layout from './components/Layout'
 import ProtectedRoute from './components/ProtectedRoute'
 import AdminRoute from './components/AdminRoute'
@@ -25,6 +26,7 @@ import Customers from './pages/admin/Customers'
 function App() {
   return (
     <BrowserRouter>
+      <ScrollToTop />
       <Routes>
         {/* ── Standalone full-page routes (no navbar/footer) ── */}
         <Route path="/login"        element={<Login />} />
