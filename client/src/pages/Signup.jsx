@@ -8,10 +8,10 @@ import { scrollToFirstError } from '../utils/formScroll'
 import api from '../api/axios'
 
 const BRAND_MESSAGES = [
-  'JOIN HUNDREDS OF HAPPY RETAILERS.',
-  'WHOLESALE PRICING FROM DAY ONE.',
-  'NEW DESIGNS EVERY SEASON.',
-  'YOUR GROWTH IS OUR BUSINESS.',
+  'HUNDREDS OF RETAILERS.',
+  'WHOLESALE FROM DAY ONE.',
+  'NEW SEASONAL DESIGNS.',
+  'WE GROW TOGETHER.',
   'QUALITY YOU CAN FEEL.',
 ]
 const RESEND_MESSAGES = [
