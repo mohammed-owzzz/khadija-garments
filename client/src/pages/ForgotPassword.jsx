@@ -234,7 +234,7 @@ function ForgotPassword() {
 
       {/* Right panel */}
       <div className="w-full lg:w-1/2 flex items-center justify-center px-8 py-16">
-        <div className="w-full max-w-sm">
+        <div key={step} className="w-full max-w-sm animate-fade-up">
           {step === 'email' ? (
             <>
               <div className="text-center mb-10">
