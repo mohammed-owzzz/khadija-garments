@@ -7,7 +7,7 @@ const otpSchema = new mongoose.Schema({
   phoneOtp:    { type: String, default: '' },
   pendingUser: { type: Object, default: null },
   userId:      { type: String, default: null },
-  type:        { type: String, enum: ['register', 'login', 'reset'], required: true },
+  type:        { type: String, enum: ['register', 'login', 'reset', 'admin'], required: true },
   expiresAt:   { type: Date,   required: true },
 })
 
