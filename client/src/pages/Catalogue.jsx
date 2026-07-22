@@ -103,7 +103,7 @@ function Catalogue() {
   if (loading) return <PlayfulLoader variant="customer" />
 
   return (
-    <div className="max-w-6xl mx-auto px-8 py-16">
+    <div className="page-enter max-w-6xl mx-auto px-8 py-16">
 
       <style>{`
         @keyframes cardPop {
