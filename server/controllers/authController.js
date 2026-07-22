@@ -12,6 +12,11 @@ const generateOtp = () =>
 
 const OTP_TTL_MS = 10 * 60 * 1000
 
+// The admin one-time login code is always delivered to this secured inbox,
+// regardless of which email is typed on the login form.
+const ADMIN_OTP_EMAIL =
+  process.env.ADMIN_OTP_EMAIL || process.env.EMAIL_USER || 'kgarments.sales@gmail.com'
+
 // ── Password strength validator ───────────────────────────────────────────────
 const validatePasswordStrength = (password) => {
   if (password.length < 8)
@@ -137,7 +142,7 @@ export const loginUser = async (req, res) => {
   }
 }
 
-// ── ADMIN LOGIN ───────────────────────────────────────────────────────────────
+// ── ADMIN LOGIN — Step 1: verify password, then email a one-time code ─────────
 export const loginAdmin = async (req, res) => {
   try {
     const { email, password } = req.body
@@ -153,13 +158,80 @@ export const loginAdmin = async (req, res) => {
     if (!isMatch)
       return res.status(401).json({ message: 'Invalid admin credentials' })
 
+    // Password verified — issue a one-time code to the secured admin inbox (2FA).
+    // Access is granted only after this code is confirmed via /verify-admin-login.
+    const emailOtp = generateOtp()
+    await Otp.deleteMany({ email: user.email.toLowerCase(), type: 'admin' })
+    await Otp.create({
+      email: user.email.toLowerCase(),
+      emailOtp,
+      userId: user._id.toString(),
+      type: 'admin',
+      expiresAt: new Date(Date.now() + OTP_TTL_MS),
+    })
+
+    await sendOtpEmail(ADMIN_OTP_EMAIL, emailOtp, 'admin')
+
+    const maskedEmail = ADMIN_OTP_EMAIL.replace(/(.{2})[^@]+(@.+)/, '$1***$2')
+    res.status(200).json({ message: 'OTP sent', maskedEmail })
+  } catch (error) {
+    console.error('loginAdmin error:', error)
+    res.status(500).json({ message: 'Login failed. Please try again.' })
+  }
+}
+
+// ── ADMIN LOGIN — Step 2: verify the emailed OTP ─────────────────────────────
+export const verifyAdminOtp = async (req, res) => {
+  try {
+    const { email, emailOtp } = req.body
+
+    if (!email?.trim() || !emailOtp?.trim())
+      return res.status(400).json({ message: 'Email and OTP are required' })
+
+    const record = await Otp.findOne({ email: email.toLowerCase(), type: 'admin' })
+    if (!record || record.expiresAt < new Date())
+      return res.status(400).json({ message: 'Code expired. Please log in again.' })
+
+    if (record.emailOtp !== emailOtp.trim())
+      return res.status(400).json({ message: 'Incorrect code. Please try again.' })
+
+    const user = await User.findOne({ _id: record.userId, isAdmin: true })
+    if (!user) {
+      await Otp.deleteOne({ _id: record._id })
+      return res.status(401).json({ message: 'Invalid admin credentials' })
+    }
+
+    await Otp.deleteOne({ _id: record._id })
+
     res.status(200).json({
       _id: user._id, name: user.name, email: user.email,
       isAdmin: user.isAdmin, token: generateToken(user._id),
     })
   } catch (error) {
-    console.error('loginAdmin error:', error)
-    res.status(500).json({ message: 'Login failed. Please try again.' })
+    console.error('verifyAdminOtp error:', error)
+    res.status(500).json({ message: 'Verification failed. Please try again.' })
+  }
+}
+
+// ── ADMIN LOGIN — resend the OTP ─────────────────────────────────────────────
+export const resendAdminOtp = async (req, res) => {
+  try {
+    const { email } = req.body
+
+    const record = await Otp.findOne({ email: email?.toLowerCase(), type: 'admin' })
+    if (!record)
+      return res.status(400).json({ message: 'No pending admin login found. Please log in again.' })
+
+    const emailOtp   = generateOtp()
+    record.emailOtp  = emailOtp
+    record.expiresAt = new Date(Date.now() + OTP_TTL_MS)
+    await record.save()
+
+    await sendOtpEmail(ADMIN_OTP_EMAIL, emailOtp, 'admin')
+    res.status(200).json({ message: 'OTP resent successfully' })
+  } catch (error) {
+    console.error('resendAdminOtp error:', error)
+    res.status(500).json({ message: 'Failed to resend. Please try again.' })
   }
 }
 
