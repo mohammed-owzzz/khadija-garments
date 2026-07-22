@@ -33,6 +33,9 @@ export const sendRegisterOtp = async (req, res) => {
     if (!name?.trim() || !email?.trim() || !password)
       return res.status(400).json({ message: 'Name, email and password are required' })
 
+    if (name.trim().length > 50)
+      return res.status(400).json({ message: 'Name is too long (maximum 50 characters)' })
+
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))
       return res.status(400).json({ message: 'Please enter a valid email address' })
 
