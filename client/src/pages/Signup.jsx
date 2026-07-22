@@ -96,7 +96,7 @@ function Signup() {
   }
 
   const handleName = (e) => {
-    const cleaned = e.target.value.replace(/[^a-zA-Z\s]/g, '')
+    const cleaned = e.target.value.replace(/[^a-zA-Z\s]/g, '').slice(0, 50)
     setFormData({ ...formData, name: cleaned })
     if (errors.name) setErrors({ ...errors, name: '' })
     if (serverError) setServerError('')
@@ -122,6 +122,7 @@ function Signup() {
   const validate = () => {
     const e = {}
     if (!formData.name.trim()) e.name = 'Full name is required'
+    else if (formData.name.trim().length > 50) e.name = 'Name is too long (max 50 characters)'
     if (!formData.email.trim()) {
       e.email = 'Email is required'
     } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
@@ -269,7 +270,7 @@ function Signup() {
                   <label className={`font-body font-medium text-sm ${textColor}`}>
                     Full Name <span className="text-brand-gold">*</span>
                   </label>
-                  <input type="text" name="name" placeholder="Your name"
+                  <input type="text" name="name" placeholder="Your name" maxLength={50}
                     value={formData.name} onChange={handleName} className={inputClass('name')} />
                   <p className="h-4 text-red-500 text-xs font-body leading-4">{errors.name}</p>
                 </div>
