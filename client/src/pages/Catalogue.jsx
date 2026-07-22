@@ -3,6 +3,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom'
 import { useTheme } from '../context/ThemeContext'
 import Card from '../components/Card'
 import PlayfulLoader from '../components/PlayfulLoader'
+import Reveal from '../components/Reveal'
 import api from '../api/axios'
 
 function Catalogue() {
@@ -103,7 +104,7 @@ function Catalogue() {
   if (loading) return <PlayfulLoader variant="customer" />
 
   return (
-    <div className="page-enter max-w-6xl mx-auto px-8 py-16">
+    <Reveal className="max-w-6xl mx-auto px-8 py-16">
 
       <style>{`
         @keyframes cardPop {
@@ -205,7 +206,7 @@ function Catalogue() {
           </div>
         </>
       )}
-    </div>
+    </Reveal>
   )
 }
 
