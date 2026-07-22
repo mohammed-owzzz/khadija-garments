@@ -6,6 +6,7 @@ import { useTheme } from '../context/ThemeContext'
 import { useCart } from '../context/CartContext'
 import HoverButton from '../components/HoverButton'
 import PlayfulMessage from '../components/PlayfulMessage'
+import PlayfulLoader from '../components/PlayfulLoader'
 
 const MAX_QTY = 9999
 const bgHex = (hex) => ({ backgroundColor: hex })
@@ -39,6 +40,7 @@ function Cart() {
   const navigate   = useNavigate()
   const { items, removeFromCart, setLineQuantity, setLineColour, cartTotal, lineUnitPrice, lineTotal } = useCart()
 
+  const [pageLoading, setPageLoading]         = useState(true)
   const [colourPicker, setColourPicker]       = useState(null)
   const [removingKeys, setRemovingKeys]       = useState(new Set())
   const [removeBtnKey, setRemoveBtnKey]       = useState(null)
@@ -58,6 +60,11 @@ function Cart() {
   const textColor   = isDark ? 'text-brand-white'  : 'text-brand-black'
   const borderColor = isDark ? 'border-brand-white' : 'border-brand-black'
   const total       = cartTotal
+
+  useEffect(() => {
+    const t = setTimeout(() => setPageLoading(false), 600)
+    return () => clearTimeout(t)
+  }, [])
 
   useEffect(() => () => {
     clearTimeout(removedTimer.current)
@@ -145,6 +152,8 @@ function Cart() {
       ? 'border-brand-white text-brand-white hover:bg-brand-white hover:text-brand-black'
       : 'border-brand-black text-brand-black hover:bg-brand-black hover:text-brand-white'
   }`
+
+  if (pageLoading) return <PlayfulLoader variant="customer" />
 
   return (
     <div className="max-w-6xl mx-auto px-6 md:px-8 py-16">
