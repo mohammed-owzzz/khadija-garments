@@ -1,53 +1,74 @@
-// Transactional email via Brevo's HTTP API (https://api.brevo.com).
+// Transactional email via the Gmail API (https://gmail.googleapis.com).
 //
-// WHY NOT SMTP/GMAIL: Render's free/starter tier blocks outbound SMTP ports
-// (25/465/587), so nodemailer + Gmail times out with ETIMEDOUT on CONN. Brevo
-// sends over HTTPS (port 443), which Render allows, so OTP and order emails work
-// reliably in production.
+// WHY GMAIL API (NOT SMTP, NOT BREVO):
+//   - Render's free/starter tier blocks outbound SMTP ports (25/465/587), so
+//     nodemailer + Gmail SMTP times out (ETIMEDOUT). The Gmail API sends over
+//     HTTPS (443), which Render allows.
+//   - Third-party senders (Brevo, SendGrid, etc.) cannot authenticate as a
+//     @gmail.com address, so Gmail silently drops or delays those messages.
+//     The Gmail API sends *through Google as your real account*, so SPF/DKIM/
+//     DMARC alignment is perfect and mail lands in the inbox.
+//   - Free, ~500 emails/day, no domain required.
 //
-// Required env vars:
-//   BREVO_API_KEY - your Brevo API key (Brevo dashboard > SMTP & API > API Keys)
-//   EMAIL_USER    - the verified sender email (verify it in Brevo > Senders)
-//   ADMIN_EMAIL   - where new-order notifications are sent (optional)
+// Required env vars (see setup guide):
+//   GMAIL_CLIENT_ID     - OAuth 2.0 Client ID from Google Cloud Console
+//   GMAIL_CLIENT_SECRET - OAuth 2.0 Client Secret
+//   GMAIL_REFRESH_TOKEN - refresh token from the OAuth Playground
+//   EMAIL_USER          - the Gmail address that authorized (the sender)
+//   ADMIN_EMAIL         - where new-order notifications are sent (optional)
 
-const BREVO_API_URL = 'https://api.brevo.com/v3/smtp/email'
+import { google } from 'googleapis'
+
 const FROM_NAME = 'Khadija Garments'
 
-if (!process.env.BREVO_API_KEY) {
-  console.error('BREVO_API_KEY is not set - emails will fail until it is configured')
+const { GMAIL_CLIENT_ID, GMAIL_CLIENT_SECRET, GMAIL_REFRESH_TOKEN } = process.env
+
+if (!GMAIL_CLIENT_ID || !GMAIL_CLIENT_SECRET || !GMAIL_REFRESH_TOKEN) {
+  console.error('Gmail API env vars missing - emails will fail until GMAIL_CLIENT_ID, GMAIL_CLIENT_SECRET and GMAIL_REFRESH_TOKEN are set')
 } else {
-  console.log('Email (Brevo HTTP API) ready')
+  console.log('Email (Gmail API) ready')
 }
 
-// Core sender: POSTs a single transactional email to Brevo over HTTPS.
+// OAuth2 client. googleapis auto-exchanges the refresh token for a short-lived
+// access token over HTTPS, so nothing here touches the blocked SMTP ports.
+const oauth2Client = new google.auth.OAuth2(GMAIL_CLIENT_ID, GMAIL_CLIENT_SECRET)
+oauth2Client.setCredentials({ refresh_token: GMAIL_REFRESH_TOKEN })
+const gmail = google.gmail({ version: 'v1', auth: oauth2Client })
+
+// RFC 2822 subjects must be ASCII; MIME-encode when they contain any non-ASCII
+// character (e.g. the "—" dash used in some order subjects).
+const encodeSubject = (subject) =>
+  /^[\x00-\x7F]*$/.test(subject)
+    ? subject
+    : `=?UTF-8?B?${Buffer.from(subject, 'utf-8').toString('base64')}?=`
+
+// Core sender: builds a MIME message and sends it via the Gmail API over HTTPS.
 const sendEmail = async ({ to, subject, html }) => {
-  const apiKey = process.env.BREVO_API_KEY
   const fromEmail = process.env.EMAIL_USER
-  if (!apiKey) throw new Error('BREVO_API_KEY is not set')
+  if (!GMAIL_CLIENT_ID || !GMAIL_CLIENT_SECRET || !GMAIL_REFRESH_TOKEN) {
+    throw new Error('Gmail API credentials are not set (GMAIL_CLIENT_ID / GMAIL_CLIENT_SECRET / GMAIL_REFRESH_TOKEN)')
+  }
   if (!fromEmail) throw new Error('EMAIL_USER (sender email) is not set')
 
-  const res = await fetch(BREVO_API_URL, {
-    method: 'POST',
-    headers: {
-      'api-key': apiKey,
-      'Content-Type': 'application/json',
-      accept: 'application/json',
-    },
-    body: JSON.stringify({
-      sender: { email: fromEmail, name: FROM_NAME },
-      to: [{ email: to }],
-      subject,
-      htmlContent: html,
-    }),
+  const mime = [
+    `From: ${FROM_NAME} <${fromEmail}>`,
+    `To: ${to}`,
+    `Subject: ${encodeSubject(subject)}`,
+    'MIME-Version: 1.0',
+    'Content-Type: text/html; charset="UTF-8"',
+    'Content-Transfer-Encoding: base64',
+    '',
+    Buffer.from(html, 'utf-8').toString('base64'),
+  ].join('\r\n')
+
+  const raw = Buffer.from(mime, 'utf-8').toString('base64url')
+
+  const res = await gmail.users.messages.send({
+    userId: 'me',
+    requestBody: { raw },
   })
 
-  if (!res.ok) {
-    const detail = await res.text().catch(() => '')
-    throw new Error(`Brevo email failed (${res.status}): ${detail}`)
-  }
-
-  const info = await res.json().catch(() => ({}))
-  console.log(`Brevo accepted email to ${to} (status ${res.status}, messageId: ${info.messageId || 'n/a'})`)
+  console.log(`Gmail API accepted email to ${to} (id: ${res.data.id || 'n/a'})`)
 }
 
 export const sendOtpEmail = async (toEmail, otp, type) => {
