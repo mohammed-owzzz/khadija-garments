@@ -344,10 +344,13 @@ function ForgotPassword() {
                   <p className="h-4 text-red-500 text-xs font-body leading-4">{fieldErrors.confirmPassword}</p>
                 </div>
 
-                <p className="h-4 text-red-500 text-xs font-body leading-4 text-center">{resetServerError}</p>
-                {successMsg && (
-                  <p className="text-xs font-body text-center text-brand-gold">{successMsg}</p>
-                )}
+                <p className="h-4 text-xs font-body leading-4 text-center">
+                  {resetServerError ? (
+                    <span className="text-red-500">{resetServerError}</span>
+                  ) : successMsg ? (
+                    <span className="text-brand-gold">{successMsg}</span>
+                  ) : null}
+                </p>
 
                 <HoverButton
                   onClick={handleReset}
@@ -368,7 +371,6 @@ function ForgotPassword() {
                       setResetServerError('')
                       setPassword('')
                       setConfirmPassword('')
-                      setFieldErrors({})
                       setResendSuccess(false)
                     }}
                     className={`font-body text-sm hover:underline transition-all duration-300 active:scale-95 ${textColor} opacity-60`}
