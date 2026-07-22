@@ -100,6 +100,8 @@ function Catalogue() {
     return 'Browse our full collection of ladies bottom wear.'
   }
 
+  if (loading) return <PlayfulLoader variant="customer" />
+
   return (
     <div className="max-w-6xl mx-auto px-8 py-16">
 
@@ -112,9 +114,9 @@ function Catalogue() {
           animation: cardPop 0.35s cubic-bezier(0.22, 1, 0.36, 1) both;
         }
         @keyframes cardClick {
-          0%   { transform: scale(1);    opacity: 1;   }
-          40%  { transform: scale(0.94); opacity: 0.7; }
-          100% { transform: scale(1.04); opacity: 0;   }
+          0%   { transform: scale(1)    opacity: 1; }
+          40%  { transform: scale(0.94) opacity: 0.7; }
+          100% { transform: scale(1.04) opacity: 0; }
         }
         .card-clicking {
           animation: cardClick 0.32s cubic-bezier(0.4, 0, 0.2, 1) forwards;
@@ -131,9 +133,7 @@ function Catalogue() {
         </p>
       </div>
 
-      {loading ? (
-        <PlayfulLoader variant="customer" />
-      ) : error ? (
+      {error ? (
         <p className="font-body text-center py-20 text-red-500">{error}</p>
       ) : (
         <>
@@ -143,7 +143,7 @@ function Catalogue() {
               <button
                 key={cat}
                 onClick={() => handleCategoryClick(cat)}
-                className={`font-body text-sm font-semibold px-5 py-2 rounded-full border-2 transition-all duration-300 active:scale-95 ${
+                className={`font-body text-sm font-semibold px-5 py-2 rounded-full border-2 transition-all duration-300 ${
                   cat === activeCategory
                     ? 'bg-brand-gold border-brand-gold text-brand-white scale-105'
                     : isDark
