@@ -94,7 +94,7 @@ function CancelOrder() {
   if (pageLoading) return <PlayfulLoader variant="customer" />
 
   return (
-    <div className="max-w-2xl mx-auto px-6 md:px-8 py-16">
+    <div className="page-enter max-w-2xl mx-auto px-6 md:px-8 py-16">
       <h1 className={`text-5xl font-heading mb-2 transition-colors duration-500 ${textColor}`}>
         Cancel an Order
       </h1>
