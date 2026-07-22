@@ -165,6 +165,11 @@ function Cart() {
           50%     { transform: translateY(-6px); }
         }
         .empty-icon { animation: emptyBounce 2s ease-in-out infinite; }
+        @keyframes emptyEnter {
+          from { opacity: 0; transform: translateY(12px); }
+          to   { opacity: 1; transform: translateY(0);    }
+        }
+        .empty-enter { animation: emptyEnter 0.5s cubic-bezier(0.22,1,0.36,1) both; }
         @keyframes swatchPop {
           0%   { transform: scale(1.1);  }
           40%  { transform: scale(1.25); }
@@ -194,7 +199,7 @@ function Cart() {
 
       {/* ── EMPTY STATE ── */}
       {items.length === 0 && (
-        <div className="flex flex-col items-center gap-6 py-20">
+        <div className="empty-enter flex flex-col items-center gap-6 py-20">
           <div className="flex flex-col items-center justify-center gap-3 min-h-[8rem]">
             {justEmptied ? (
               <>
