@@ -3,6 +3,7 @@ import { useLocation, useNavigate } from 'react-router-dom'
 import { useTheme } from '../context/ThemeContext'
 import HoverButton from '../components/HoverButton'
 import PlayfulLoader from '../components/PlayfulLoader'
+import Reveal from '../components/Reveal'
 import ConfirmDialog from '../components/ConfirmDialog'
 import { scrollToField } from '../utils/formScroll'
 import api from '../api/axios'
@@ -94,7 +95,7 @@ function CancelOrder() {
   if (pageLoading) return <PlayfulLoader variant="customer" />
 
   return (
-    <div className="page-enter max-w-2xl mx-auto px-6 md:px-8 py-16">
+    <Reveal className="max-w-2xl mx-auto px-6 md:px-8 py-16">
       <h1 className={`text-5xl font-heading mb-2 transition-colors duration-500 ${textColor}`}>
         Cancel an Order
       </h1>
@@ -241,7 +242,7 @@ function CancelOrder() {
         confirmHover={CONFIRM_HOVER}
         confirmClick={CONFIRM_CLICK}
       />
-    </div>
+    </Reveal>
   )
 }
 
