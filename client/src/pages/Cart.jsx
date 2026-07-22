@@ -195,16 +195,18 @@ function Cart() {
       {/* ── EMPTY STATE ── */}
       {items.length === 0 && (
         <div className="flex flex-col items-center gap-6 py-20">
-          {justEmptied ? (
-            <>
-              <div className="empty-icon text-5xl select-none text-brand-gold">{EMPTY_FACES[emptyMsgIdx]}</div>
-              <p className={`font-body text-lg text-center transition-all duration-500 ${textColor}`}>
-                {EMPTY_MESSAGES[emptyMsgIdx]}
-              </p>
-            </>
-          ) : (
-            <p className={`font-body transition-colors duration-500 ${textColor}`}>Your cart is empty.</p>
-          )}
+          <div className="flex flex-col items-center justify-center gap-3 min-h-[8rem]">
+            {justEmptied ? (
+              <>
+                <div className="empty-icon text-5xl select-none text-brand-gold">{EMPTY_FACES[emptyMsgIdx]}</div>
+                <p className={`font-body text-lg text-center transition-all duration-500 ${textColor}`}>
+                  {EMPTY_MESSAGES[emptyMsgIdx]}
+                </p>
+              </>
+            ) : (
+              <p className={`font-body transition-colors duration-500 ${textColor}`}>Your cart is empty.</p>
+            )}
+          </div>
           <HoverButton
             hoverMessages={SHOPPING_HOVER}
             loadingMessages={SHOPPING_LOADING}
