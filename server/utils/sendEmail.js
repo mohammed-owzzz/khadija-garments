@@ -77,13 +77,17 @@ export const sendOtpEmail = async (toEmail, otp, type) => {
       ? 'Verify your Khadija Garments account'
       : type === 'reset'
         ? 'Reset your Khadija Garments password'
-        : 'Your Khadija Garments login OTP'
+        : type === 'admin'
+          ? 'Your Khadija Garments admin login code'
+          : 'Your Khadija Garments login OTP'
   const action =
     type === 'register'
       ? 'complete your registration'
       : type === 'reset'
         ? 'reset your password'
-        : 'log in'
+        : type === 'admin'
+          ? 'log in to the admin portal'
+          : 'log in'
   const html = `
     <div style="font-family:sans-serif;max-width:480px;margin:0 auto;padding:32px;">
       <h2 style="color:#C8A84B;margin-bottom:8px;">Khadija Garments</h2>
