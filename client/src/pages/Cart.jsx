@@ -7,6 +7,7 @@ import { useCart } from '../context/CartContext'
 import HoverButton from '../components/HoverButton'
 import PlayfulMessage from '../components/PlayfulMessage'
 import PlayfulLoader from '../components/PlayfulLoader'
+import Reveal from '../components/Reveal'
 
 const MAX_QTY = 9999
 const bgHex = (hex) => ({ backgroundColor: hex })
@@ -156,7 +157,7 @@ function Cart() {
   if (pageLoading) return <PlayfulLoader variant="customer" />
 
   return (
-    <div className="page-enter max-w-6xl mx-auto px-6 md:px-8 py-16">
+    <Reveal className="max-w-6xl mx-auto px-6 md:px-8 py-16">
 
       <style>{`
         @keyframes slideInItem {
@@ -494,7 +495,7 @@ function Cart() {
         </div>,
         document.body
       )}
-    </div>
+    </Reveal>
   )
 }
 
