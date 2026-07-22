@@ -1,7 +1,8 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { useTheme } from '../context/ThemeContext'
 import HoverButton from '../components/HoverButton'
+import PlayfulLoader from '../components/PlayfulLoader'
 import ConfirmDialog from '../components/ConfirmDialog'
 import { scrollToField } from '../utils/formScroll'
 import api from '../api/axios'
@@ -30,6 +31,7 @@ function CancelOrder() {
   const navigate    = useNavigate()
   const prefillCode = (location.state?.code || '').toUpperCase()
 
+  const [pageLoading, setPageLoading] = useState(true)
   const [code, setCode]               = useState(prefillCode)
   const [order, setOrder]             = useState(null)
   const [loading, setLoading]         = useState(false)
@@ -49,6 +51,11 @@ function CancelOrder() {
 
   const textColor   = isDark ? 'text-brand-white'  : 'text-brand-black'
   const borderColor = isDark ? 'border-brand-white' : 'border-brand-black'
+
+  useEffect(() => {
+    const t = setTimeout(() => setPageLoading(false), 600)
+    return () => clearTimeout(t)
+  }, [])
 
   const handleFind = async (codeOverride) => {
     const trimmed = (typeof codeOverride === 'string' ? codeOverride : code).trim().toUpperCase()
@@ -83,6 +90,8 @@ function CancelOrder() {
   const handleKeyDown = (e) => { if (e.key === 'Enter') handleFind() }
 
   const canCancel = order && CANCELLABLE.includes(order.status) && !done
+
+  if (pageLoading) return <PlayfulLoader variant="customer" />
 
   return (
     <div className="max-w-2xl mx-auto px-6 md:px-8 py-16">
