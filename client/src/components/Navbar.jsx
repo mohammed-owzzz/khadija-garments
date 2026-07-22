@@ -101,7 +101,7 @@ function Navbar() {
         <div className="flex items-center justify-end gap-3">
           {user ? (
             <>
-              <span className={`font-heading text-2xl whitespace-nowrap transition-colors duration-500 ${textColor} mr-2`}>
+              <span title={firstName} className={`font-heading text-2xl inline-block max-w-[12rem] truncate align-middle transition-colors duration-500 ${textColor} mr-2`}>
                 Hi, {firstName}
               </span>
               <LogoutButton onLogout={handleLogout} loading={logoutLoading} isDark={isDark} />
@@ -155,7 +155,7 @@ function Navbar() {
           <div className="flex flex-col justify-center gap-4">
             {user ? (
               <div>
-                <p className={`font-heading text-2xl text-center mb-3 transition-colors duration-500 ${textColor}`}>
+                <p className={`font-heading text-2xl text-center mb-3 break-words transition-colors duration-500 ${textColor}`}>
                   Hi, {firstName}
                 </p>
                 <LogoutButton onLogout={handleLogout} loading={logoutLoading} isDark={isDark} mobile />
