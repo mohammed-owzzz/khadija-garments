@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { useTheme } from '../context/ThemeContext'
 import HoverButton from '../components/HoverButton'
+import PlayfulLoader from '../components/PlayfulLoader'
 import { scrollToField } from '../utils/formScroll'
 import api from '../api/axios'
 
@@ -69,6 +70,7 @@ function TrackOrder() {
   const location              = useLocation()
   const navigate              = useNavigate()
   const prefillCode           = (location.state?.code || '').toUpperCase()
+  const [pageLoading, setPageLoading] = useState(true)
   const [code, setCode]       = useState(prefillCode)
   const [result, setResult]   = useState(null)
   const [loading, setLoading] = useState(false)
@@ -117,7 +119,14 @@ function TrackOrder() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
+  useEffect(() => {
+    const t = setTimeout(() => setPageLoading(false), 600)
+    return () => clearTimeout(t)
+  }, [])
+
   const currentInfo = result ? STATUS_INFO[result.status] : null
+
+  if (pageLoading) return <PlayfulLoader variant="customer" />
 
   return (
     <div className="max-w-2xl mx-auto px-6 md:px-8 py-16">
