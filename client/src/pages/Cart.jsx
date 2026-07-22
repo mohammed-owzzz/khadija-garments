@@ -156,7 +156,7 @@ function Cart() {
   if (pageLoading) return <PlayfulLoader variant="customer" />
 
   return (
-    <div className="max-w-6xl mx-auto px-6 md:px-8 py-16">
+    <div className="page-enter max-w-6xl mx-auto px-6 md:px-8 py-16">
 
       <style>{`
         @keyframes slideInItem {
